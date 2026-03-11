@@ -10,6 +10,7 @@ from langchain_groq import ChatGroq # <-- 1. New dedicated import
 # ==========================================
 # 1. Initialize Cloud LLM (Groq via Streamlit Secrets)
 # ==========================================
+os.environ["OPENAI_API_KEY"] = "NA"
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
 # 2. Use the dedicated ChatGroq class instead of the generic LLM class
@@ -198,6 +199,7 @@ if st.button("Generate Analysis"):
     else:
 
         st.warning("Please enter a valid ticker symbol.")
+
 
 
 
