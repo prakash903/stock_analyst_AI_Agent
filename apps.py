@@ -14,9 +14,9 @@ from langchain_community.tools import DuckDuckGoSearchResults
 os.environ["OPENAI_API_KEY"] = "NA" 
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
-live_llm = LLM(
-    model="groq/llama3-8b-8192", 
-    temperature=0  
+live_llm = ChatGroq(
+    temperature=0,
+    model_name="llama3-8b-8192" 
 )
 
 # ==========================================
@@ -199,5 +199,6 @@ if st.button("Generate Analysis"):
     else:
 
         st.warning("Please enter a valid ticker symbol.")
+
 
 
