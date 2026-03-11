@@ -134,7 +134,7 @@ def run_stock_analysis(ticker_symbol):
         backstory='You are an elite fund manager in India. You compile reports from your analysts and forecaster to write executive summaries with a clear verdict (Bullish, Bearish, Neutral).',
         verbose=True,
         allow_delegation=False, 
-        llm=local_llm,
+        llm=live_llm,
         max_iter=2
     )
 
@@ -198,6 +198,7 @@ if st.button("Generate Analysis"):
     else:
 
         st.warning("Please enter a valid ticker symbol.")
+
 
 
 
