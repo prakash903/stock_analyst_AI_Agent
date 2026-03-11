@@ -1,0 +1,7 @@
+streamlit
+crewai
+yfinance
+langchain-community
+duckduckgo-search
+numpy
+groq
