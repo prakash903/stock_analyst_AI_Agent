@@ -2,43 +2,41 @@ import os
 import yfinance as yf
 import numpy as np
 import streamlit as st
-from crewai import Agent, Task, Crew, Process
+from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import tool
 from langchain_community.tools import DuckDuckGoSearchResults
-from langchain_groq import ChatGroq # <-- 1. New dedicated import
 
 # ==========================================
-# 1. Initialize Cloud LLM (Groq via Streamlit Secrets)
+# 1. Initialize Cloud LLM 
 # ==========================================
-os.environ["OPENAI_API_KEY"] = "NA"
+# Bypasses CrewAI's default OpenAI check
+os.environ["OPENAI_API_KEY"] = "NA" 
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
-# 2. Use the dedicated ChatGroq class instead of the generic LLM class
-live_llm = ChatGroq(
-    temperature=0,
-    model_name="llama3-8b-8192" 
+live_llm = LLM(
+    model="groq/llama3-8b-8192", 
+    temperature=0  
 )
 
 # ==========================================
-# 2. Define Custom Tools (Llama-Proofed)
+# 2. Define Custom Tools 
 # ==========================================
 @tool("Get Indian Stock Data")
 def get_stock_data(ticker) -> str:
-    """Fetches the current price and 2-month historical data for an Indian stock ticker."""
+    """Fetches the current price and 1-month historical data for an Indian stock ticker."""
     if isinstance(ticker, dict):
         ticker = ticker.get("ticker", ticker.get("title", list(ticker.values())[0]))
     ticker_str = str(ticker).strip()
 
     try:
         stock = yf.Ticker(ticker_str)
-        hist = stock.history(period="2mo")
+        hist = stock.history(period="1mo")
         if hist.empty:
             return f"No data found for {ticker_str}."
         current_price = hist['Close'].iloc[-1]
         return f"Ticker: {ticker_str}\nCurrent Price: ₹{current_price:.2f}\nRecent Data:\n{hist.tail(5)}"
     except Exception as e:
         return f"Error fetching data for {ticker_str}: {str(e)}"
-
 
 @tool("Search Indian Financial News")
 def search_tool(query) -> str:
@@ -51,7 +49,6 @@ def search_tool(query) -> str:
     localized_query = f"{query_str} NSE BSE India stock market news"
     return search.invoke(localized_query)
 
-
 @tool("Predict Future Price")
 def predict_stock_price(ticker) -> str:
     """Predicts the stock price for the next 5 days using a 3-month linear regression trend."""
@@ -61,27 +58,22 @@ def predict_stock_price(ticker) -> str:
 
     try:
         stock = yf.Ticker(ticker_str)
-        # Pull 3 months of data to establish a reliable trend
-        hist = stock.history(period="6mo") 
+        hist = stock.history(period="3mo") 
         if hist.empty:
             return f"No data found for {ticker_str} to make a prediction."
         
-        # Isolate the closing prices and drop any missing data
         df = hist[['Close']].dropna()
         df['Day'] = np.arange(len(df))
         
-        # Calculate Simple Linear Regression using numpy (y = mx + b)
         x = df['Day'].values
         y = df['Close'].values
-        z = np.polyfit(x, y, 1) # 1st degree polynomial = straight line
+        z = np.polyfit(x, y, 1) 
         trend_line = np.poly1d(z)
         
-        # Predict the next 5 days
         last_day = x[-1]
         future_days = np.array([last_day + i for i in range(1, 6)])
         predictions = trend_line(future_days)
         
-        # Format the output for the agent
         res = f"5-Day Price Prediction for {ticker_str} (Based on 3-month mathematical linear trend):\n"
         for i, pred in enumerate(predictions):
             res += f"Day {i+1}: ₹{pred:.2f}\n"
@@ -102,8 +94,8 @@ def run_stock_analysis(ticker_symbol):
         verbose=True,
         allow_delegation=False,
         tools=[get_stock_data],
-        llm=live_llm,
-        max_iter=2
+        llm=live_llm, # <-- Secured to Groq
+        max_iter=3
     )
 
     sentiment_analyst = Agent(
@@ -113,11 +105,10 @@ def run_stock_analysis(ticker_symbol):
         verbose=True,
         allow_delegation=False,
         tools=[search_tool],
-        llm=live_llm,
-        max_iter=2
+        llm=live_llm, # <-- Secured to Groq
+        max_iter=3
     )
 
-    # NEW AGENT: The Forecaster
     price_predictor = Agent(
         role='Algorithmic Forecaster',
         goal=f'Generate a 5-day price forecast for {ticker_symbol} using mathematical models.',
@@ -125,8 +116,8 @@ def run_stock_analysis(ticker_symbol):
         verbose=True,
         allow_delegation=False,
         tools=[predict_stock_price],
-        llm=live_llm,
-        max_iter=2
+        llm=live_llm, # <-- Secured to Groq
+        max_iter=3
     )
 
     strategist = Agent(
@@ -135,8 +126,8 @@ def run_stock_analysis(ticker_symbol):
         backstory='You are an elite fund manager in India. You compile reports from your analysts and forecaster to write executive summaries with a clear verdict (Bullish, Bearish, Neutral).',
         verbose=True,
         allow_delegation=False, 
-        llm=live_llm,
-        max_iter=2
+        llm=live_llm, # <-- Secured to Groq
+        max_iter=3
     )
 
     # --- Define Tasks ---
@@ -152,7 +143,6 @@ def run_stock_analysis(ticker_symbol):
         agent=sentiment_analyst
     )
 
-    # NEW TASK: Prediction
     task_predict = Task(
         description=f'Use your mathematical tool to calculate the next 5 days of prices for {ticker_symbol}. Format the output clearly.',
         expected_output='A list of estimated prices for the next 5 trading days based on the mathematical trend.',
@@ -167,8 +157,8 @@ def run_stock_analysis(ticker_symbol):
 
     # --- Assemble Crew ---
     stock_analysis_crew = Crew(
-        agents=[quant_analyst, sentiment_analyst, price_predictor, strategist], # Added forecaster here
-        tasks=[task_quant, task_sentiment, task_predict, task_synthesis],     # Added predict task here
+        agents=[quant_analyst, sentiment_analyst, price_predictor, strategist], 
+        tasks=[task_quant, task_sentiment, task_predict, task_synthesis],     
         process=Process.sequential
     )
 
@@ -190,21 +180,10 @@ if st.button("Generate Analysis"):
         with st.spinner(f"Your team of 4 AI agents is analyzing and forecasting {ticker_input}..."):
             try:
                 final_report = run_stock_analysis(ticker_input)
-                
                 st.success("Analysis Complete!")
                 st.markdown("---")
                 st.markdown(final_report)
             except Exception as e:
                 st.error(f"An error occurred: {e}")
     else:
-
         st.warning("Please enter a valid ticker symbol.")
-
-
-
-
-
-
-
-
-
