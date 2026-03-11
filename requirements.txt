@@ -4,4 +4,4 @@ yfinance
 langchain-community
 duckduckgo-search
 numpy
-groq
+langchain-groq
