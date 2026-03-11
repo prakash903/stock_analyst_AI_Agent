@@ -101,7 +101,7 @@ def run_stock_analysis(ticker_symbol):
         verbose=True,
         allow_delegation=False,
         tools=[get_stock_data],
-        llm=local_llm,
+        llm=live_llm,
         max_iter=2
     )
 
@@ -112,7 +112,7 @@ def run_stock_analysis(ticker_symbol):
         verbose=True,
         allow_delegation=False,
         tools=[search_tool],
-        llm=local_llm,
+        llm=live_llm,
         max_iter=2
     )
 
@@ -124,7 +124,7 @@ def run_stock_analysis(ticker_symbol):
         verbose=True,
         allow_delegation=False,
         tools=[predict_stock_price],
-        llm=local_llm,
+        llm=live_llm,
         max_iter=2
     )
 
@@ -198,3 +198,4 @@ if st.button("Generate Analysis"):
     else:
 
         st.warning("Please enter a valid ticker symbol.")
+
