@@ -2,18 +2,17 @@ import os
 import yfinance as yf
 import numpy as np
 import streamlit as st
-from crewai import Agent, Task, Crew, Process, LLM
+from crewai import Agent, Task, Crew, Process
 from crewai.tools import tool
 from langchain_community.tools import DuckDuckGoSearchResults
+from langchain_groq import ChatGroq # <-- 1. New dedicated import
 
 # ==========================================
-# 1. Initialize Cloud LLM (Bypassing OpenAI Bug)
+# 1. Initialize Cloud LLM (Groq via Streamlit Secrets)
 # ==========================================
-# We feed CrewAI a fake OpenAI key to stop it from crashing on boot, 
-# and then provide the real Groq key for the actual work.
-os.environ["OPENAI_API_KEY"] = "NA" 
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
+# 2. Use the dedicated ChatGroq class instead of the generic LLM class
 live_llm = ChatGroq(
     temperature=0,
     model_name="llama3-8b-8192" 
@@ -199,6 +198,7 @@ if st.button("Generate Analysis"):
     else:
 
         st.warning("Please enter a valid ticker symbol.")
+
 
 
 
