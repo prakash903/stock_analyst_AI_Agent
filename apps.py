@@ -14,7 +14,9 @@ from langchain_community.tools import DuckDuckGoSearchResults
 
 os.environ["OPENAI_API_KEY"] = st.secrets["GROQ_API_KEY"]
 os.environ["OPENAI_API_BASE"] = "https://api.groq.com/openai/v1"
-os.environ["OPENAI_MODEL_NAME"] = "llama-3.1-8b-instant"
+
+# UPGRADE TO THE 70-BILLION PARAMETER MODEL:
+os.environ["OPENAI_MODEL_NAME"] = "llama-3.3-70b-versatile"
 
 # Use the dedicated ChatGroq connector and pass the secret directly into it
 # live_llm = ChatGroq(
@@ -192,6 +194,7 @@ if st.button("Generate Analysis"):
                 st.error(f"An error occurred: {e}")
     else:
         st.warning("Please enter a valid ticker symbol.")
+
 
 
 
