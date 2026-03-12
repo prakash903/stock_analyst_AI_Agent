@@ -17,11 +17,11 @@ os.environ["OPENAI_API_BASE"] = "https://api.groq.com/openai/v1"
 os.environ["OPENAI_MODEL_NAME"] = "llama3-8b-8192"
 
 # Use the dedicated ChatGroq connector and pass the secret directly into it
-live_llm = ChatGroq(
-    temperature=0,
-    model_name="llama3-8b-8192",
-    api_key=st.secrets["GROQ_API_KEY"]
-)
+# live_llm = ChatGroq(
+#     temperature=0,
+#     model_name="llama3-8b-8192",
+#     api_key=st.secrets["GROQ_API_KEY"]
+# )
 
 # ==========================================
 # 2. Define Custom Tools 
@@ -192,6 +192,7 @@ if st.button("Generate Analysis"):
                 st.error(f"An error occurred: {e}")
     else:
         st.warning("Please enter a valid ticker symbol.")
+
 
 
 
