@@ -5,12 +5,16 @@ import streamlit as st
 from crewai import Agent, Task, Crew, Process
 from crewai.tools import tool
 from langchain_community.tools import DuckDuckGoSearchResults
-from langchain_groq import ChatGroq # <-- The bulletproof LangChain connector
 
 # ==========================================
-# 1. Initialize Cloud LLM 
+# 1. The Ultimate Cloud Fix: API Hijacking
 # ==========================================
-os.environ["OPENAI_API_KEY"] = "NA" # Keep this to stop CrewAI's background checks
+# We trick CrewAI into thinking it is using OpenAI, 
+# but we reroute the URL directly to Groq's ultra-fast servers.
+
+os.environ["OPENAI_API_KEY"] = st.secrets["GROQ_API_KEY"]
+os.environ["OPENAI_API_BASE"] = "https://api.groq.com/openai/v1"
+os.environ["OPENAI_MODEL_NAME"] = "llama3-8b-8192"
 
 # Use the dedicated ChatGroq connector and pass the secret directly into it
 live_llm = ChatGroq(
@@ -95,7 +99,7 @@ def run_stock_analysis(ticker_symbol):
         verbose=True,
         allow_delegation=False,
         tools=[get_stock_data],
-        llm=live_llm, # <-- Secured to Groq
+        #llm=live_llm, # <-- Secured to Groq
         max_iter=3
     )
 
@@ -106,7 +110,7 @@ def run_stock_analysis(ticker_symbol):
         verbose=True,
         allow_delegation=False,
         tools=[search_tool],
-        llm=live_llm, # <-- Secured to Groq
+        #llm=live_llm, # <-- Secured to Groq
         max_iter=3
     )
 
@@ -117,7 +121,7 @@ def run_stock_analysis(ticker_symbol):
         verbose=True,
         allow_delegation=False,
         tools=[predict_stock_price],
-        llm=live_llm, # <-- Secured to Groq
+       # llm=live_llm, # <-- Secured to Groq
         max_iter=3
     )
 
@@ -127,7 +131,7 @@ def run_stock_analysis(ticker_symbol):
         backstory='You are an elite fund manager in India. You compile reports from your analysts and forecaster to write executive summaries with a clear verdict (Bullish, Bearish, Neutral).',
         verbose=True,
         allow_delegation=False, 
-        llm=live_llm, # <-- Secured to Groq
+       # llm=live_llm, # <-- Secured to Groq
         max_iter=3
     )
 
@@ -188,6 +192,7 @@ if st.button("Generate Analysis"):
                 st.error(f"An error occurred: {e}")
     else:
         st.warning("Please enter a valid ticker symbol.")
+
 
 
 
