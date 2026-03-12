@@ -175,10 +175,10 @@ def run_stock_analysis(ticker_symbol):
 # ==========================================
 # 4. Streamlit UI Build
 # ==========================================
-st.set_page_config(page_title="Dalal Street AI", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Indian Stock AI", page_icon="📈", layout="wide")
 
-st.title("📈 Dalal Street AI Analyst")
-st.write("Enter an Indian stock ticker to generate a comprehensive fundamental, technical, and predictive report.")
+st.title("📈 Indian Stock AI Analyst")
+st.write("Enter an Indian stock to generate a comprehensive fundamental, technical, and predictive report. For input code, refer https://finance.yahoo.com/")
 
 ticker_input = st.text_input("Enter Ticker Symbol (e.g., RELIANCE.NS, TCS.NS, INFY.BO):", "RELIANCE.NS")
 
@@ -194,6 +194,7 @@ if st.button("Generate Analysis"):
                 st.error(f"An error occurred: {e}")
     else:
         st.warning("Please enter a valid ticker symbol.")
+
 
 
 
